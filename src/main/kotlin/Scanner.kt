@@ -44,7 +44,7 @@ class Scanner(private val source: String) {
             ' ', '\r', '\t' -> {}
             '\n' -> line++
 
-            else -> Lox.error(line, "Unexpected character.");
+            else -> Lox.error(line, "Unexpected character: $c");
         }
     }
 
