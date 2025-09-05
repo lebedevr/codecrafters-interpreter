@@ -41,11 +41,35 @@ class Scanner(private val source: String) {
             } else {
                 addToken(SLASH)
             }
+
             ' ', '\r', '\t' -> {}
             '\n' -> line++
             '"' -> string()
-            else -> Lox.error(line, "Unexpected character: $c");
+            else ->
+                if (isDigit(c)) {
+                    number()
+                } else {
+                    Lox.error(line, "Unexpected character: $c")
+                }
         }
+    }
+
+    private fun number() {
+        while (isDigit(peek())) advance()
+        if (peek() == '.' && isDigit(peekNext())) {
+            advance()
+            while (isDigit(peek())) advance()
+        }
+        addToken(NUMBER, source.substring(start, current).toDouble())
+    }
+
+    private fun peekNext(): Char {
+        if (current + 1 >= source.length) return '\u0000'
+        return source.get(current + 1)
+    }
+
+    private fun isDigit(c: Char): Boolean {
+        return c >= '0' && c <= '9'
     }
 
     private fun string() {
