@@ -43,9 +43,32 @@ class Scanner(private val source: String) {
             }
             ' ', '\r', '\t' -> {}
             '\n' -> line++
-
+            '"' -> string()
             else -> Lox.error(line, "Unexpected character: $c");
         }
+    }
+
+    private fun string() {
+        while (peek() != '"' && !isAtEnd) {
+            if (peek() == '\n') line++
+            advance()
+        }
+        if (isAtEnd) {
+            Lox.error(line, "Unterminated string.")
+            return
+        }
+        advance()
+        val value = source.substring(start + 1, current - 1)
+        addToken(STRING, value)
+    }
+
+    private fun advance(): Char {
+        return source[current++]
+    }
+
+    private fun peek(): Char {
+        if (this.isAtEnd) return '\u0000'
+        return source[current]
     }
 
     private fun match(expected: Char): Boolean {
@@ -55,17 +78,8 @@ class Scanner(private val source: String) {
         return true
     }
 
-    private fun peek(): Char {
-        if (this.isAtEnd) return '\u0000'
-        return source.get(current)
-    }
-
     private val isAtEnd: Boolean
         get() = current >= source.length
-
-    private fun advance(): Char {
-        return source.get(current++)
-    }
 
     private fun addToken(type: TokenType) {
         addToken(type, null)
@@ -76,7 +90,7 @@ class Scanner(private val source: String) {
         tokens.add(Token(type, text, literal, line))
     }
 
-    companion object Qwe {
+    companion object {
 
         private val keywords = mutableMapOf<String, TokenType>()
 
