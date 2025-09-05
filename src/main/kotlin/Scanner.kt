@@ -1,6 +1,26 @@
 import TokenType.*
 
 class Scanner(private val source: String) {
+
+    private val keywords: Map<String, TokenType> = mapOf(
+        "and"    to AND,
+        "class"  to CLASS,
+        "else"   to ELSE,
+        "false"  to FALSE,
+        "for"    to FOR,
+        "fun"    to FUN,
+        "if"     to IF,
+        "nil"    to NIL,
+        "or"     to OR,
+        "print"  to PRINT,
+        "return" to RETURN,
+        "super"  to SUPER,
+        "this"   to THIS,
+        "true"   to TRUE,
+        "var"    to VAR,
+        "while"  to WHILE,
+    )
+
     private val tokens = mutableListOf<Token>()
 
     private var start = 0
@@ -46,12 +66,26 @@ class Scanner(private val source: String) {
             '\n' -> line++
             '"' -> string()
             else ->
-                if (isDigit(c)) {
-                    number()
-                } else {
-                    Lox.error(line, "Unexpected character: $c")
-                }
+                if (isDigit(c)) number()
+                else if (isAlpha(c)) identifier()
+                else Lox.error(line, "Unexpected character: $c")
         }
+    }
+
+    private fun isAlpha(c: Char): Boolean {
+        return (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') || c == '_'
+    }
+
+    private fun isAlphaNumeric(c: Char): Boolean {
+        return isAlpha(c) || isDigit(c)
+    }
+
+    private fun identifier() {
+        while (isAlphaNumeric(peek())) advance()
+        val text = source.substring(start, current)
+        val type = keywords.getOrDefault(text, IDENTIFIER)
+        addToken(type)
     }
 
     private fun number() {
@@ -114,27 +148,4 @@ class Scanner(private val source: String) {
         tokens.add(Token(type, text, literal, line))
     }
 
-    companion object {
-
-        private val keywords = mutableMapOf<String, TokenType>()
-
-        init {
-            keywords.put("and", AND)
-            keywords.put("class", CLASS)
-            keywords.put("else", ELSE)
-            keywords.put("false", FALSE)
-            keywords.put("for", FOR)
-            keywords.put("fun", FUN)
-            keywords.put("if", IF)
-            keywords.put("nil", NIL)
-            keywords.put("or", OR)
-            keywords.put("print", PRINT)
-            keywords.put("return", RETURN)
-            keywords.put("super", SUPER)
-            keywords.put("this", THIS)
-            keywords.put("true", TRUE)
-            keywords.put("var", VAR)
-            keywords.put("while", WHILE)
-        }
-    }
 }
