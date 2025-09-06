@@ -3,7 +3,6 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.math.absoluteValue
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -23,40 +22,38 @@ object Lox {
         }
         val command = args[0]
         val filename = args[1]
-        if (command != "tokenize") {
+        if (command !in listOf("tokenize", "parse")) {
             System.err.println("Unknown command: ${command}")
             exitProcess(1)
         }
-        runFile(filename)
+        runFile(filename, command)
     }
 
-    private fun runFile(path: String) {
+    private fun runFile(path: String, command: String) {
         val bytes = Files.readAllBytes(Paths.get(path))
-        run(String(bytes, Charset.defaultCharset()))
+        run(String(bytes, Charset.defaultCharset()), command)
         if (hadError) System.exit(65)
         if (hadRuntimeError) System.exit(70)
     }
 
-    private fun runPrompt() {
-        val input = InputStreamReader(System.`in`)
-        val reader = BufferedReader(input)
-
-        while (true) {
-            print("> ")
-            val line = reader.readLine()
-            if (line == null) break
-            run(line)
-            hadError = false
-        }
-    }
-
-    private fun run(source: String) {
+    private fun run(source: String, command: String) {
         val scanner: Scanner = Scanner(source)
         val tokens: MutableList<Token> = scanner.scanTokens()
+        if (command == "tokenize") {
+            for (token in tokens) {
+                println(token)
+            }
+        } else if (command == "parse") {
+            val parser = Parser(tokens)
+            val expression = parser.parse()
 
-        for (token in tokens) {
-            println(token)
+            // Stop if there was a syntax error.
+            if (hadError) return
+
+            expression?.also { println(AstPrinter().print(expression)) }
+
         }
+
     }
 
 
