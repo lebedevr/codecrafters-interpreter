@@ -1,88 +1,93 @@
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.system.exitProcess
-
-fun main(args: Array<String>) {
-    Lox.main(args)
-}
 
 object Lox {
-
-    val interpreter: Interpreter = Interpreter()
-
+    private val interpreter: Interpreter = Interpreter()
     var hadError: Boolean = false
-
     var hadRuntimeError: Boolean = false
 
+    @Throws(IOException::class)
+    @JvmStatic
     fun main(args: Array<String>) {
-        if (args.size < 2) {
-            System.err.println("Usage: ./your_program.sh tokenize <filename>")
-            exitProcess(1)
+        if (args.size > 1) {
+            println("Usage: jlox [script]")
+            System.exit(64) // [64]
+        } else if (args.size == 1) {
+            runFile(args[0])
+        } else {
+            runPrompt()
         }
-        val command = args[0]
-        val filename = args[1]
-        if (command !in listOf("tokenize", "parse", "evaluate")) {
-            System.err.println("Unknown command: ${command}")
-            exitProcess(1)
-        }
-        runFile(filename, command)
     }
 
-    private fun runFile(path: String, command: String) {
+    @Throws(IOException::class)
+    private fun runFile(path: String) {
         val bytes = Files.readAllBytes(Paths.get(path))
-        run(String(bytes, Charset.defaultCharset()), command)
+        run(String(bytes, Charset.defaultCharset()))
+
+        // Indicate an error in the exit code.
         if (hadError) System.exit(65)
         if (hadRuntimeError) System.exit(70)
     }
 
-    private fun run(source: String, command: String) {
-        val scanner: Scanner = Scanner(source)
-        val tokens: MutableList<Token> = scanner.scanTokens()
-        if (command == "tokenize") {
-            for (token in tokens) {
-                println(token)
-            }
-        } else if (command == "parse") {
-            val parser = Parser(tokens)
-            val expression = parser.parse()
+    @Throws(IOException::class)
+    private fun runPrompt() {
+        val input = InputStreamReader(System.`in`)
+        val reader = BufferedReader(input)
 
-            // Stop if there was a syntax error.
-            if (hadError) return
-
-            expression?.also { println(AstPrinter().print(expression)) }
-        } else if (command == "evaluate") {
-            val parser = Parser(tokens)
-            val expression = parser.parse()
-            expression?.let { interpreter.interpret(it) }
+        while (true) {
+            // [repl]
+            print("> ")
+            val line = reader.readLine()
+            if (line == null) break
+            run(line)
+            hadError = false
         }
-
     }
 
+    private fun run(source: String) {
+        val scanner: Scanner = Scanner(source)
+        val tokens: MutableList<Token> = scanner.scanTokens()
+        val parser: Parser = Parser(tokens)
+        val statements: MutableList<Stmt?> = parser.parse()
+
+        // Stop if there was a syntax error.
+        if (hadError) return
+
+        interpreter.interpret(statements)
+    }
 
     fun error(line: Int, message: String?) {
         report(line, "", message)
-    }
-
-    fun error(token: Token, message: String?) {
-        if (token.type === TokenType.EOF) {
-            report(token.line, " at end", message)
-        } else {
-            report(token.line, " at '" + token.lexeme + "'", message)
-        }
-    }
-
-    fun runtimeError(error: RuntimeError) {
-        System.err.println(error.message + "\n[line " + error.token.line + "]")
-        hadRuntimeError = true
     }
 
     private fun report(
         line: Int, where: String?,
         message: String?
     ) {
-        System.err.println("[line " + line + "] Error" + where + ": " + message)
+        System.err.println(
+            "[line " + line + "] Error" + where + ": " + message
+        )
         hadError = true
     }
 
+    fun error(token: Token?, message: String?) {
+        if (token?.type === TokenType.EOF) {
+            report(token.line, " at end", message)
+        } else {
+            report(token!!.line, " at '" + token?.lexeme + "'", message)
+        }
+    }
+
+    @JvmStatic
+    fun runtimeError(error: RuntimeError) {
+        System.err.println(
+            error.message +
+                    "\n[line " + error.token.line + "]"
+        )
+        hadRuntimeError = true
+    }
 }

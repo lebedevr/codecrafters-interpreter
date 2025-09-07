@@ -1,3 +1,4 @@
+import Expr.Assign
 import TokenType.*
 
 internal class Parser(tokens: MutableList<Token>) {
@@ -10,23 +11,95 @@ internal class Parser(tokens: MutableList<Token>) {
         this.tokens = tokens
     }
 
-    fun parse(): Expr? {
+    fun parse(): MutableList<Stmt?> {
+        val statements: MutableList<Stmt?> = ArrayList<Stmt?>()
+        while (!this.isAtEnd) {
+            statements.add(declaration())
+        }
+
+        return statements // [parse-error-handling]
+    }
+
+    private fun expression(): Expr? {
+        return assignment()
+    }
+
+    private fun declaration(): Stmt? {
         try {
-            return expression()
+            if (match(VAR)) return varDeclaration()
+
+            return statement()
         } catch (error: ParseError) {
+            synchronize()
             return null
         }
     }
 
-    private fun expression(): Expr {
-        return equality()
+    private fun statement(): Stmt? {
+        if (match(PRINT)) return printStatement()
+        if (match(LEFT_BRACE)) return Stmt.Block(block())
+
+        return expressionStatement()
+    }
+
+    private fun printStatement(): Stmt {
+        val value: Expr? = expression()
+        consume(SEMICOLON, "Expect ';' after value.")
+        return Stmt.Print(value)
+    }
+
+    private fun varDeclaration(): Stmt {
+        val name: Token? = consume(IDENTIFIER, "Expect variable name.")
+
+        var initializer: Expr? = null
+        if (match(EQUAL)) {
+            initializer = expression()
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.")
+        return Stmt.Var(name, initializer)
+    }
+
+    private fun expressionStatement(): Stmt {
+        val expr: Expr? = expression()
+        consume(SEMICOLON, "Expect ';' after expression.")
+        return Stmt.Expression(expr)
+    }
+
+    private fun block(): MutableList<Stmt?> {
+        val statements: MutableList<Stmt?> = ArrayList<Stmt?>()
+
+        while (!check(RIGHT_BRACE) && !this.isAtEnd) {
+            statements.add(declaration())
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.")
+        return statements
+    }
+
+    private fun assignment(): Expr? {
+        val expr: Expr = equality()
+
+        if (match(EQUAL)) {
+            val equals: Token? = previous()
+            val value: Expr? = assignment()
+
+            if (expr is Expr.Variable) {
+                val name: Token? = expr.name
+                return Assign(name, value)
+            }
+
+            error(equals, "Invalid assignment target.") // [no-throw]
+        }
+
+        return expr
     }
 
     private fun equality(): Expr {
         var expr: Expr = comparison()
 
         while (match(BANG_EQUAL, EQUAL_EQUAL)) {
-            val operator: Token = previous()
+            val operator: Token? = previous()
             val right: Expr = comparison()
             expr = Expr.Binary(expr, operator, right)
         }
@@ -38,7 +111,7 @@ internal class Parser(tokens: MutableList<Token>) {
         var expr: Expr = term()
 
         while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
-            val operator: Token = previous()
+            val operator: Token? = previous()
             val right: Expr = term()
             expr = Expr.Binary(expr, operator, right)
         }
@@ -50,7 +123,7 @@ internal class Parser(tokens: MutableList<Token>) {
         var expr: Expr = factor()
 
         while (match(MINUS, PLUS)) {
-            val operator: Token = previous()
+            val operator: Token? = previous()
             val right: Expr = factor()
             expr = Expr.Binary(expr, operator, right)
         }
@@ -62,7 +135,7 @@ internal class Parser(tokens: MutableList<Token>) {
         var expr: Expr = unary()
 
         while (match(SLASH, STAR)) {
-            val operator: Token = previous()
+            val operator: Token? = previous()
             val right: Expr = unary()
             expr = Expr.Binary(expr, operator, right)
         }
@@ -72,7 +145,7 @@ internal class Parser(tokens: MutableList<Token>) {
 
     private fun unary(): Expr {
         if (match(BANG, MINUS)) {
-            val operator: Token = previous()
+            val operator: Token? = previous()
             val right: Expr = unary()
             return Expr.Unary(operator, right)
         }
@@ -86,11 +159,15 @@ internal class Parser(tokens: MutableList<Token>) {
         if (match(NIL)) return Expr.Literal(null)
 
         if (match(NUMBER, STRING)) {
-            return Expr.Literal(previous().literal)
+            return Expr.Literal(previous()?.literal)
+        }
+
+        if (match(IDENTIFIER)) {
+            return Expr.Variable(previous())
         }
 
         if (match(LEFT_PAREN)) {
-            val expr: Expr = expression()
+            val expr: Expr? = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
             return Expr.Grouping(expr)
         }
@@ -98,7 +175,7 @@ internal class Parser(tokens: MutableList<Token>) {
         throw error(peek(), "Expect expression.")
     }
 
-    private fun match(vararg types: TokenType): Boolean {
+    private fun match(vararg types: TokenType?): Boolean {
         for (type in types) {
             if (check(type)) {
                 advance()
@@ -109,34 +186,34 @@ internal class Parser(tokens: MutableList<Token>) {
         return false
     }
 
-    private fun consume(type: TokenType, message: String): Token {
+    private fun consume(type: TokenType?, message: String?): Token? {
         if (check(type)) return advance()
 
         throw error(peek(), message)
     }
 
-    private fun check(type: TokenType): Boolean {
+    private fun check(type: TokenType?): Boolean {
         if (this.isAtEnd) return false
-        return peek().type === type
+        return peek()?.type === type
     }
 
-    private fun advance(): Token {
+    private fun advance(): Token? {
         if (!this.isAtEnd) current++
         return previous()
     }
 
     private val isAtEnd: Boolean
-        get() = peek().type === EOF
+        get() = peek()?.type === EOF
 
-    private fun peek(): Token {
+    private fun peek(): Token? {
         return tokens.get(current)
     }
 
-    private fun previous(): Token {
+    private fun previous(): Token? {
         return tokens.get(current - 1)
     }
 
-    private fun error(token: Token, message: String): ParseError {
+    private fun error(token: Token?, message: String?): ParseError {
         Lox.error(token, message)
         return ParseError()
     }
@@ -145,9 +222,9 @@ internal class Parser(tokens: MutableList<Token>) {
         advance()
 
         while (!this.isAtEnd) {
-            if (previous().type === SEMICOLON) return
+            if (previous()?.type === SEMICOLON) return
 
-            when (peek().type) {
+            when (peek()?.type) {
                 CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
                 else -> {}
             }
