@@ -1,27 +1,29 @@
+import Lox.runFile
 import java.io.IOException
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
+fun main(args: Array<String>) {
+
+
+    val command = args[0]
+    val filename = args[1]
+    if (command !in listOf("tokenize", "parse", "evaluate", "run")) {
+        System.err.println("Unknown command: ${command}")
+        exitProcess(1)
+    }
+    runFile(filename, command)
+}
+
 object Lox {
     private val interpreter: Interpreter = Interpreter()
     var hadError: Boolean = false
     var hadRuntimeError: Boolean = false
 
-    @Throws(IOException::class)
-    @JvmStatic
-    fun main(args: Array<String>) {
 
 
-        val command = args[0]
-        val filename = args[1]
-        if (command !in listOf("tokenize", "parse", "evaluate", "run")) {
-            System.err.println("Unknown command: ${command}")
-            exitProcess(1)
-        }
-        runFile(filename, command)
-    }
 
 
     @Throws(IOException::class)
