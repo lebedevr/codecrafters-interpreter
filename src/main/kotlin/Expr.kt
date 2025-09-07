@@ -1,109 +1,62 @@
 //> Appendix II expr
-
-abstract class Expr {
-  interface Visitor<R> {
-    R visitAssignExpr(Assign expr);
-    R visitBinaryExpr(Binary expr);
-    R visitGroupingExpr(Grouping expr);
-    R visitLiteralExpr(Literal expr);
-    R visitUnaryExpr(Unary expr);
-    R visitVariableExpr(Variable expr);
-  }
-
-  // Nested Expr classes here...
-//> expr-assign
-  static class Assign extends Expr {
-    Assign(Token name, Expr value) {
-      this.name = name;
-      this.value = value;
+ abstract class Expr {
+     interface Visitor<R> {
+        fun visitAssignExpr(expr: Assign): R?
+        fun visitBinaryExpr(expr: Binary): R?
+        fun visitGroupingExpr(expr: Grouping): R?
+        fun visitLiteralExpr(expr: Literal): R?
+        fun visitUnaryExpr(expr: Unary): R?
+        fun visitVariableExpr(expr: Variable): R?
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitAssignExpr(this);
+    //< expr-variable
+    abstract fun <R> accept(visitor: Visitor<R?>): R?
+    // Nested Expr classes here...
+    //> expr-assign
+     class Assign(@JvmField val name: Token?, @JvmField val value: Expr?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitAssignExpr(this)
+        }
     }
 
-    final Token name;
-    final Expr value;
-  }
-//< expr-assign
-//> expr-binary
-  static class Binary extends Expr {
-    Binary(Expr left, Token operator, Expr right) {
-      this.left = left;
-      this.operator = operator;
-      this.right = right;
+    //< expr-assign
+    //> expr-binary
+     class Binary(@JvmField val left: Expr?, @JvmField val operator: Token?, @JvmField val right: Expr?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitBinaryExpr(this)
+        }
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBinaryExpr(this);
+    //< expr-binary
+    //> expr-grouping
+     class Grouping(@JvmField val expression: Expr?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitGroupingExpr(this)
+        }
     }
 
-    final Expr left;
-    final Token operator;
-    final Expr right;
-  }
-//< expr-binary
-//> expr-grouping
-  static class Grouping extends Expr {
-    Grouping(Expr expression) {
-      this.expression = expression;
+    //< expr-grouping
+    //> expr-literal
+     class Literal(@JvmField val value: Any?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitLiteralExpr(this)
+        }
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitGroupingExpr(this);
+    //< expr-literal
+    //> expr-unary
+     class Unary(@JvmField val operator: Token?, @JvmField val right: Expr?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitUnaryExpr(this)
+        }
     }
 
-    final Expr expression;
-  }
-//< expr-grouping
-//> expr-literal
-  static class Literal extends Expr {
-    Literal(Object value) {
-      this.value = value;
+    //< expr-unary
+    //> expr-variable
+     class Variable(@JvmField val name: Token?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitVariableExpr(this)
+        }
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitLiteralExpr(this);
-    }
-
-    final Object value;
-  }
-//< expr-literal
-//> expr-unary
-  static class Unary extends Expr {
-    Unary(Token operator, Expr right) {
-      this.operator = operator;
-      this.right = right;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitUnaryExpr(this);
-    }
-
-    final Token operator;
-    final Expr right;
-  }
-//< expr-unary
-//> expr-variable
-  static class Variable extends Expr {
-    Variable(Token name) {
-      this.name = name;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitVariableExpr(this);
-    }
-
-    final Token name;
-  }
-//< expr-variable
-
-  abstract <R> R accept(Visitor<R> visitor);
-}
-//< Appendix II expr
+} //< Appendix II expr

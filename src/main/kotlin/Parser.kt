@@ -12,7 +12,7 @@ internal class Parser(tokens: MutableList<Token>) {
     }
 
     fun parse(): MutableList<Stmt?> {
-        val statements: MutableList<Stmt?> = ArrayList<Stmt?>()
+        val statements: MutableList<Stmt?> = ArrayList()
         while (!this.isAtEnd) {
             statements.add(declaration())
         }
@@ -24,18 +24,15 @@ internal class Parser(tokens: MutableList<Token>) {
         return assignment()
     }
 
-    private fun declaration(): Stmt? {
-        try {
+    private fun declaration(): Stmt {
+
             if (match(VAR)) return varDeclaration()
 
             return statement()
-        } catch (error: ParseError) {
-            synchronize()
-            return null
-        }
+
     }
 
-    private fun statement(): Stmt? {
+    private fun statement(): Stmt {
         if (match(PRINT)) return printStatement()
         if (match(LEFT_BRACE)) return Stmt.Block(block())
 
@@ -66,8 +63,8 @@ internal class Parser(tokens: MutableList<Token>) {
         return Stmt.Expression(expr)
     }
 
-    private fun block(): MutableList<Stmt?> {
-        val statements: MutableList<Stmt?> = ArrayList<Stmt?>()
+    private fun block(): MutableList<Stmt> {
+        val statements: MutableList<Stmt> = ArrayList<Stmt>()
 
         while (!check(RIGHT_BRACE) && !this.isAtEnd) {
             statements.add(declaration())

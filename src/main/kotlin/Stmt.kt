@@ -1,75 +1,45 @@
-//> Appendix II stmt
-
-import java.util.List;
-
 abstract class Stmt {
-  interface Visitor<R> {
-    R visitBlockStmt(Block stmt);
-    R visitExpressionStmt(Expression stmt);
-    R visitPrintStmt(Print stmt);
-    R visitVarStmt(Var stmt);
-  }
-
-  // Nested Stmt classes here...
-//> stmt-block
-  static class Block extends Stmt {
-    Block(List<Stmt> statements) {
-      this.statements = statements;
+    interface Visitor<R> {
+        fun visitBlockStmt(stmt: Block): R?
+        fun visitExpressionStmt(stmt: Expression): R?
+        fun visitPrintStmt(stmt: Print): R?
+        fun visitVarStmt(stmt: Var): R?
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBlockStmt(this);
+    abstract fun <R> accept(visitor: Visitor<R?>): R?
+
+    // Nested Stmt classes here...
+    //> stmt-block
+    class Block(val statements: MutableList<Stmt>) : Stmt() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitBlockStmt(this)
+        }
     }
 
-    final List<Stmt> statements;
-  }
-//< stmt-block
-//> stmt-expression
-  static class Expression extends Stmt {
-    Expression(Expr expression) {
-      this.expression = expression;
+    //< stmt-block
+    //> stmt-expression
+    class Expression(val expression: Expr?) : Stmt() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitExpressionStmt(this)
+        }
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitExpressionStmt(this);
+    //< stmt-expression
+    //> stmt-print
+    class Print(val expression: Expr?) : Stmt() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitPrintStmt(this)
+        }
     }
 
-    final Expr expression;
-  }
-//< stmt-expression
-//> stmt-print
-  static class Print extends Stmt {
-    Print(Expr expression) {
-      this.expression = expression;
+    //< stmt-print
+    //> stmt-var
+    class Var(val name: Token?, val initializer: Expr?) : Stmt() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitVarStmt(this)
+        }
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitPrintStmt(this);
-    }
+    //< stmt-var
 
-    final Expr expression;
-  }
-//< stmt-print
-//> stmt-var
-  static class Var extends Stmt {
-    Var(Token name, Expr initializer) {
-      this.name = name;
-      this.initializer = initializer;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitVarStmt(this);
-    }
-
-    final Token name;
-    final Expr initializer;
-  }
-//< stmt-var
-
-  abstract <R> R accept(Visitor<R> visitor);
-}
-//< Appendix II stmt
+} //< Appendix II stmt
