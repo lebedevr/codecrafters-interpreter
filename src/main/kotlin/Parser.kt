@@ -1,14 +1,35 @@
 import Expr.Assign
 import TokenType.*
 
+
 internal class Parser(tokens: MutableList<Token>) {
     private class ParseError : RuntimeException()
 
     private val tokens: MutableList<Token>
     private var current = 0
 
+    var allowExpression = false
+    var foundExpression = false
+
     init {
         this.tokens = tokens
+    }
+
+    fun parseRepl(): Any? {
+        allowExpression = true
+        val statements: MutableList<Stmt> = ArrayList<Stmt>()
+        while (!isAtEnd) {
+            statements.add(declaration())
+
+            if (foundExpression) {
+                val last = statements.get(statements.size - 1)
+                return (last as Stmt.Expression).expression
+            }
+
+            allowExpression = false
+        }
+
+        return statements
     }
 
     fun parse(): MutableList<Stmt?> {
@@ -59,7 +80,11 @@ internal class Parser(tokens: MutableList<Token>) {
 
     private fun expressionStatement(): Stmt {
         val expr: Expr? = expression()
-        consume(SEMICOLON, "Expect ';' after expression.")
+        if (allowExpression && isAtEnd) {
+            foundExpression = true;
+        } else {
+            consume(SEMICOLON, "Expect ';' after expression.")
+        }
         return Stmt.Expression(expr)
     }
 

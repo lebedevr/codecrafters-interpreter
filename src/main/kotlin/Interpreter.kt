@@ -14,6 +14,16 @@ import Lox.runtimeError
         }
     }
 
+     fun interpret(expression: Expr?): String? {
+         try {
+             val value = evaluate(expression!!)
+             return stringify(value)
+         } catch (error: RuntimeError) {
+             runtimeError(error)
+             return null
+         }
+     }
+
     private fun evaluate(expr: Expr): Any? {
         return expr.accept<Any?>(this)
     }
