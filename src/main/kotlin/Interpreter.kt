@@ -70,7 +70,7 @@ import Lox.runtimeError
             value = evaluate(stmt.initializer)
         }
 
-        environment.define(stmt.name!!.lexeme, value!!)
+        environment.define(stmt.name!!.lexeme, value)
         return null
     }
 

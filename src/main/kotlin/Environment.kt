@@ -1,6 +1,6 @@
 class Environment {
     val enclosing: Environment?
-    private val values: MutableMap<String, Any> = HashMap<String, Any>()
+    private val values: MutableMap<String, Any?> = HashMap()
 
     constructor() {
         enclosing = null
@@ -23,7 +23,7 @@ class Environment {
         )
     }
 
-    fun assign(name: Token, value: Any) {
+    fun assign(name: Token, value: Any?) {
         if (values.containsKey(name.lexeme)) {
             values.put(name.lexeme, value)
             return
@@ -40,7 +40,7 @@ class Environment {
         )
     }
 
-    fun define(name: String, value: Any) {
+    fun define(name: String, value: Any?) {
         values.put(name, value)
     }
 
