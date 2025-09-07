@@ -1,5 +1,3 @@
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -10,6 +8,8 @@ fun main(args: Array<String>) {
 }
 
 object Lox {
+
+    val interpreter: Interpreter = Interpreter()
 
     var hadError: Boolean = false
 
@@ -22,7 +22,7 @@ object Lox {
         }
         val command = args[0]
         val filename = args[1]
-        if (command !in listOf("tokenize", "parse")) {
+        if (command !in listOf("tokenize", "parse", "evaluate")) {
             System.err.println("Unknown command: ${command}")
             exitProcess(1)
         }
@@ -51,7 +51,10 @@ object Lox {
             if (hadError) return
 
             expression?.also { println(AstPrinter().print(expression)) }
-
+        } else if (command == "evaluate") {
+            val parser = Parser(tokens)
+            val expression = parser.parse()
+            expression?.let { interpreter.interpret(it) }
         }
 
     }

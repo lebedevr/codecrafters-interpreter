@@ -1,5 +1,5 @@
 internal class AstPrinter : Expr.Visitor<String> {
-    fun print(expr: Expr): String {
+    fun print(expr: Expr): String? {
         return expr.accept(this)
     }
 
