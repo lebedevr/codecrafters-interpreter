@@ -41,21 +41,16 @@ object Lox {
             }
         } else if (command == "parse") {
             val parser = Parser(tokens)
-            val expression = parser.parse()
             if (hadError) return
             val syntax = parser.parseRepl()
             if (syntax is Expr) {
-                val result = interpreter.interpret(syntax)
-                if (result != null) {
-                    println("= " + result)
-                }
+                val result = AstPrinter().print(syntax)
+                println(result)
             }
         } else if (command == "evaluate") {
             val parser = Parser(tokens)
             val syntax = parser.parseRepl()
-            if (syntax is MutableList<*>) {
-                interpreter.interpret(syntax as MutableList<Stmt?>)
-            } else if (syntax is Expr) {
+            if (syntax is Expr) {
                 val result = interpreter.interpret(syntax)
                 if (result != null) {
                     println(result)
