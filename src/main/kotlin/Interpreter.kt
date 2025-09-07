@@ -51,8 +51,8 @@ class Interpreter : Expr.Visitor<Any> {
                 } // [plus]
 
 
-                if (left is String || right is String) {
-                    return stringify(left) + stringify(right)
+                if (left is String && right is String) {
+                    return left + right
                 }
 
                 throw RuntimeError(
