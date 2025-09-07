@@ -22,10 +22,6 @@ object Lox {
     var hadError: Boolean = false
     var hadRuntimeError: Boolean = false
 
-
-
-
-
     @Throws(IOException::class)
     fun runFile(path: String, command: String) {
         val bytes = Files.readAllBytes(Paths.get(path))

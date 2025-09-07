@@ -33,7 +33,7 @@ import Lox.runtimeError
     }
 
     fun executeBlock(
-        statements: MutableList<Stmt>,
+        statements: MutableList<Stmt?>,
         environment: Environment
     ) {
         val previous = this.environment
@@ -41,7 +41,7 @@ import Lox.runtimeError
             this.environment = environment
 
             for (statement in statements) {
-                execute(statement)
+                statement?.let { execute(it) }
             }
         } finally {
             this.environment = previous

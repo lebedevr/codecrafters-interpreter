@@ -10,7 +10,7 @@ abstract class Stmt {
 
     // Nested Stmt classes here...
     //> stmt-block
-    class Block(val statements: MutableList<Stmt>) : Stmt() {
+    class Block(val statements: MutableList<Stmt?>) : Stmt() {
         override fun <R> accept(visitor: Visitor<R?>): R? {
             return visitor.visitBlockStmt(this)
         }

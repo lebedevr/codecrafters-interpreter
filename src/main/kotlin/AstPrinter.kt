@@ -14,7 +14,7 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         builder.append("(block ")
 
         for (statement in stmt.statements) {
-            builder.append(statement.accept<String?>(this))
+            builder.append(statement?.accept<String?>(this))
         }
 
         builder.append(")")
