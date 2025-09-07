@@ -12,19 +12,17 @@ object Lox {
     @Throws(IOException::class)
     @JvmStatic
     fun main(args: Array<String>) {
-        if (args.size < 2) {
-            System.err.println("Usage: ./your_program.sh tokenize <filename>")
-            exitProcess(1)
 
-            val command = args[0]
-            val filename = args[1]
-            if (command !in listOf("tokenize", "parse", "evaluate", "run")) {
-                System.err.println("Unknown command: ${command}")
-                exitProcess(1)
-            }
-            runFile(filename, command)
+
+        val command = args[0]
+        val filename = args[1]
+        if (command !in listOf("tokenize", "parse", "evaluate", "run")) {
+            System.err.println("Unknown command: ${command}")
+            exitProcess(1)
         }
+        runFile(filename, command)
     }
+
 
     @Throws(IOException::class)
     fun runFile(path: String, command: String) {
