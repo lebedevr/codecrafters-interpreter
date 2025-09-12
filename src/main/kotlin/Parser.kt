@@ -1,6 +1,8 @@
 import Expr.Assign
+import Expr.Logical
+import Stmt.While
 import TokenType.*
-
+import java.util.*
 
 internal class Parser(tokens: MutableList<Token>) {
     private class ParseError : RuntimeException()
@@ -56,16 +58,86 @@ internal class Parser(tokens: MutableList<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (match(FOR)) return forStatement()
+        if (match(IF)) return ifStatement()
         if (match(PRINT)) return printStatement()
+        if (match(WHILE)) return whileStatement()
         if (match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
+    }
+
+    private fun forStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after 'for'.")
+        val initializer: Stmt?
+        if (match(SEMICOLON)) {
+            initializer = null
+        } else if (match(VAR)) {
+            initializer = varDeclaration()
+        } else {
+            initializer = expressionStatement()
+        }
+
+        var condition: Expr? = null
+        if (!check(SEMICOLON)) {
+            condition = expression()
+        }
+        consume(SEMICOLON, "Expect ';' after loop condition.")
+
+        var increment: Expr? = null
+        if (!check(RIGHT_PAREN)) {
+            increment = expression()
+        }
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        var body: Stmt? = statement()
+
+        if (increment != null) {
+            body = Stmt.Block(
+                Arrays.asList<Stmt?>(
+                    body,
+                    Stmt.Expression(increment)
+                )
+            )
+        }
+
+        if (condition == null) condition = Expr.Literal(true)
+        body = While(condition, body)
+
+        if (initializer != null) {
+            body = Stmt.Block(Arrays.asList<Stmt?>(initializer, body))
+        }
+
+        return body
+    }
+
+    private fun ifStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        val condition: Expr = expression()!!
+        consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+        val thenBranch = statement()
+        var elseBranch: Stmt? = null
+        if (match(ELSE)) {
+            elseBranch = statement()
+        }
+
+        return Stmt.If(condition, thenBranch, elseBranch)
     }
 
     private fun printStatement(): Stmt {
         val value: Expr? = expression()
         consume(SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(value)
+    }
+
+    private fun whileStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after 'while'.")
+        val condition = expression()
+        consume(RIGHT_PAREN, "Expect ')' after condition.")
+        val body: Stmt = statement()
+
+        return While(condition, body)
     }
 
     private fun varDeclaration(): Stmt {
@@ -102,7 +174,7 @@ internal class Parser(tokens: MutableList<Token>) {
     }
 
     private fun assignment(): Expr? {
-        val expr: Expr = equality()
+        val expr: Expr? = or()
 
         if (match(EQUAL)) {
             val equals: Token? = previous()
@@ -114,6 +186,30 @@ internal class Parser(tokens: MutableList<Token>) {
             }
 
             error(equals, "Invalid assignment target.") // [no-throw]
+        }
+
+        return expr
+    }
+
+    private fun or(): Expr? {
+        var expr: Expr? = and()
+
+        while (match(OR)) {
+            val operator = previous()
+            val right: Expr? = and()
+            expr = Logical(expr, operator, right)
+        }
+
+        return expr
+    }
+
+    private fun and(): Expr? {
+        var expr: Expr? = equality()
+
+        while (match(AND)) {
+            val operator = previous()
+            val right: Expr? = equality()
+            expr = Logical(expr, operator, right)
         }
 
         return expr

@@ -58,6 +58,15 @@ import Lox.runtimeError
         return null
     }
 
+     override fun visitIfStmt(stmt: Stmt.If): Void? {
+         if (isTruthy(evaluate(stmt.condition))) {
+             execute(stmt.thenBranch)
+         } else if (stmt.elseBranch != null) {
+             execute(stmt.elseBranch)
+         }
+         return null;
+     }
+
     override fun visitPrintStmt(stmt: Stmt.Print): Void? {
         val value = evaluate(stmt.expression!!)
         println(stringify(value))
@@ -74,7 +83,14 @@ import Lox.runtimeError
         return null
     }
 
-    override fun visitAssignExpr(expr: Assign): Any? {
+     override fun visitWhileStmt(stmt: Stmt.While): Void? {
+         while (isTruthy(evaluate(stmt.condition!!))) {
+             execute(stmt.body!!);
+         }
+         return null;
+     }
+
+     override fun visitAssignExpr(expr: Assign): Any? {
         val value = evaluate(expr.value!!)
         environment.assign(expr.name!!, value!!)
         return value
@@ -152,7 +168,19 @@ import Lox.runtimeError
         return expr.value
     }
 
-    override fun visitUnaryExpr(expr: Expr.Unary): Any? {
+     override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+         val left = evaluate(expr.left!!)
+
+         if (expr.operator!!.type === TokenType.OR) {
+             if (isTruthy(left)) return left
+         } else {
+             if (!isTruthy(left)) return left
+         }
+
+         return evaluate(expr.right!!)
+     }
+
+     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right!!)
 
         when (expr.operator!!.type) {

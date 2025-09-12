@@ -1,4 +1,6 @@
 import Expr.Assign
+import Expr.Logical
+import Stmt.While
 
 internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
     fun print(expr: Expr): String? {
@@ -25,6 +27,17 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         return parenthesize(";", stmt.expression!!)
     }
 
+    override fun visitIfStmt(stmt: Stmt.If): String {
+        if (stmt.elseBranch == null) {
+            return parenthesize2("if", stmt.condition, stmt.thenBranch)
+        }
+
+        return parenthesize2(
+            "if-else", stmt.condition, stmt.thenBranch,
+            stmt.elseBranch
+        )
+    }
+
     override fun visitPrintStmt(stmt: Stmt.Print): String {
         return parenthesize("print", stmt.expression!!)
     }
@@ -37,6 +50,9 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         return parenthesize2("var", stmt.name, "=", stmt.initializer)
     }
 
+    override fun visitWhileStmt(stmt: While): String {
+        return parenthesize2("while", stmt.condition, stmt.body)
+    }
     override fun visitAssignExpr(expr: Assign): String {
         return parenthesize2("=", expr.name!!.lexeme, expr.value)
     }
@@ -55,6 +71,10 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
     override fun visitLiteralExpr(expr: Expr.Literal): String? {
         if (expr.value == null) return "nil"
         return expr.value.toString()
+    }
+
+    override fun visitLogicalExpr(expr: Logical): String {
+        return parenthesize(expr.operator!!.lexeme, expr.left!!, expr.right!!)
     }
 
     override fun visitUnaryExpr(expr: Expr.Unary): String {
