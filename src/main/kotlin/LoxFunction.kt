@@ -1,9 +1,9 @@
-class LoxFunction(val declaration: Stmt.Function) : LoxCallable {
+class LoxFunction(val declaration: Stmt.Function, val closure: Environment) : LoxCallable {
 
     override fun arity(): Int = declaration.params.size
 
     override fun call(interpreter: Interpreter, arguments: MutableList<Any?>): Any? {
-        val environment = Environment(interpreter.globals)
+        val environment = Environment(closure)
 
         for (i in declaration.params.indices) {
             environment.define(
