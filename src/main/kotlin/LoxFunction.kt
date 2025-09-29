@@ -12,7 +12,11 @@ class LoxFunction(val declaration: Stmt.Function) : LoxCallable {
             )
         }
 
-        interpreter.executeBlock(declaration.body, environment)
+        try {
+            interpreter.executeBlock(declaration.body, environment)
+        } catch (returnValue: Return) {
+            return returnValue.value
+        }
         return null
     }
 
