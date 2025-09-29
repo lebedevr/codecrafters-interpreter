@@ -6,6 +6,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
 
     val globals: Environment = Environment()
     private var environment = globals
+    private val locals: MutableMap<Expr, Int> = HashMap()
 
     init {
         globals.define("clock", object : LoxCallable {
@@ -42,6 +43,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
              return null
          }
      }
+
+    fun resolve(expr: Expr, depth: Int) {
+        locals.put(expr, depth)
+    }
 
     private fun evaluate(expr: Expr): Any? {
         return expr.accept<Any?>(this)
@@ -124,7 +129,12 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
 
      override fun visitAssignExpr(expr: Assign): Any? {
         val value = evaluate(expr.value!!)
-        environment.assign(expr.name!!, value!!)
+         val distance = locals.get(expr)
+         if (distance != null) {
+             environment.assignAt(distance, expr.name!!, value)
+         } else {
+             globals.assign(expr.name!!, value)
+         }
         return value
     }
 
@@ -256,7 +266,16 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return environment.get(expr.name!!)
+        return lookUpVariable(expr.name!!, expr)
+    }
+
+    private fun lookUpVariable(name: Token, expr: Expr?): Any? {
+        val distance = locals.get(expr)
+        if (distance != null) {
+            return environment.getAt(distance, name.lexeme)
+        } else {
+            return globals.get(name)
+        }
     }
 
     private fun checkNumberOperand(operator: Token, operand: Any?) {

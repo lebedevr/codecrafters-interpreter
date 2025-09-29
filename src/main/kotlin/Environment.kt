@@ -44,6 +44,23 @@ class Environment {
         values.put(name, value)
     }
 
+    fun getAt(distance: Int, name: String?): Any? {
+        return ancestor(distance)?.values?.get(name)
+    }
+
+    fun ancestor(distance: Int): Environment? {
+        var environment: Environment? = this
+        for (i in 0..<distance) {
+            environment = environment!!.enclosing
+        }
+
+        return environment
+    }
+
+    fun assignAt(distance: Int, name: Token, value: Any?) {
+        ancestor(distance)!!.values.put(name.lexeme, value)
+    }
+
     override fun toString(): String {
         var result: String? = values.toString()
         if (enclosing != null) {
