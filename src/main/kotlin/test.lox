@@ -1,1 +1,2 @@
-"bar"!="world"
+var a = clock();
+print a;

@@ -64,6 +64,10 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         )
     }
 
+    override fun visitCallExpr(expr: Expr.Call): String? {
+        return parenthesize2("call", expr.callee, expr.arguments)
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): String {
         return parenthesize("group", expr.expression!!)
     }

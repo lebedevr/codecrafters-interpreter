@@ -1,8 +1,27 @@
 import Expr.Assign
 import Lox.runtimeError
 
- class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
-    private var environment = Environment()
+
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
+
+    private val globals: Environment = Environment()
+    private var environment = globals
+
+    init {
+        globals.define("clock", object : LoxCallable {
+            override fun arity(): Int {
+                return 0
+            }
+
+            override fun call(interpreter: Interpreter, arguments: MutableList<Any?>): Any? {
+                return System.currentTimeMillis().toDouble() / 1000.0
+            }
+
+            override fun toString(): String {
+                return "<native fn>"
+            }
+        })
+    }
 
     fun interpret(statements: MutableList<Stmt?>) {
         try {
@@ -160,7 +179,34 @@ import Lox.runtimeError
         return null
     }
 
-    override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val callee = evaluate(expr.callee!!)
+
+        val arguments: MutableList<Any?> = ArrayList<Any?>()
+        for (argument in expr.arguments!!) {
+            arguments.add(evaluate(argument!!))
+        }
+
+        if (callee !is LoxCallable) {
+            throw RuntimeError(
+                expr.paren!!,
+                "Can only call functions and classes."
+            )
+        }
+
+        val function: LoxCallable = callee as LoxCallable
+
+        if (arguments.size != function.arity()) {
+            throw RuntimeError(
+                expr.paren!!, "Expected " +
+                        function.arity() + " arguments but got " +
+                        arguments.size + "."
+            )
+        }
+        return function.call(this, arguments)
+    }
+
+     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
         return evaluate(expr.expression!!)
     }
 
