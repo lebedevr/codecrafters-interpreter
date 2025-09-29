@@ -27,6 +27,25 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         return parenthesize(";", stmt.expression!!)
     }
 
+    override fun visitFunctionStmt(stmt: Stmt.Function): String? {
+        val builder = java.lang.StringBuilder()
+        builder.append("(fun " + stmt.name!!.lexeme + "(")
+
+        for (param in stmt.params) {
+            if (param !== stmt.params.get(0)) builder.append(" ")
+            builder.append(param!!.lexeme)
+        }
+
+        builder.append(") ")
+
+        for (body in stmt.body) {
+            builder.append(body!!.accept(this))
+        }
+
+        builder.append(")")
+        return builder.toString()
+    }
+
     override fun visitIfStmt(stmt: Stmt.If): String {
         if (stmt.elseBranch == null) {
             return parenthesize2("if", stmt.condition, stmt.thenBranch)

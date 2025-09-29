@@ -4,7 +4,7 @@ import Lox.runtimeError
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
 
-    private val globals: Environment = Environment()
+    val globals: Environment = Environment()
     private var environment = globals
 
     init {
@@ -74,6 +74,12 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
 
     override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
         evaluate(stmt.expression!!)
+        return null
+    }
+
+    override fun visitFunctionStmt(stmt: Stmt.Function): Void? {
+        val function = LoxFunction(stmt)
+        environment.define(stmt.name!!.lexeme, function)
         return null
     }
 
