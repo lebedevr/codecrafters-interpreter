@@ -290,6 +290,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
         return value
     }
 
+    override fun visitThisExpr(expr: Expr.This): Any? {
+        return lookUpVariable(expr.keyword!!, expr)
+    }
+
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right!!)
 

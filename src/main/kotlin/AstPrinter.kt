@@ -128,6 +128,10 @@ class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         )
     }
 
+    override fun visitThisExpr(expr: Expr.This): String? {
+        return "this"
+    }
+
     override fun visitUnaryExpr(expr: Expr.Unary): String {
         return parenthesize(expr.operator!!.lexeme, expr.right!!)
     }
