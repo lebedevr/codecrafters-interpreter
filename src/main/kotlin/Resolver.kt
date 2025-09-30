@@ -106,6 +106,11 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
         return null
     }
 
+    override fun visitGetExpr(expr: Expr.Get): Void? {
+        resolve(expr.`object`!!)
+        return null
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Void? {
         resolve(expr.expression!!)
         return null
@@ -118,6 +123,12 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
     override fun visitLogicalExpr(expr: Logical): Void? {
         resolve(expr.left!!)
         resolve(expr.right!!)
+        return null
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Void? {
+        resolve(expr.value!!)
+        resolve(expr.`object`!!)
         return null
     }
 

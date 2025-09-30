@@ -104,6 +104,10 @@ class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
         return parenthesize2("call", expr.callee, expr.arguments)
     }
 
+    override fun visitGetExpr(expr: Expr.Get): String? {
+        return parenthesize2(".", expr.`object`, expr.name!!.lexeme)
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): String {
         return parenthesize("group", expr.expression!!)
     }
@@ -115,6 +119,13 @@ class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
 
     override fun visitLogicalExpr(expr: Logical): String {
         return parenthesize(expr.operator!!.lexeme, expr.left!!, expr.right!!)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): String? {
+        return parenthesize2(
+            "=",
+            expr.`object`, expr.name!!.lexeme, expr.value
+        )
     }
 
     override fun visitUnaryExpr(expr: Expr.Unary): String {

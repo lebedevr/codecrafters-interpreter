@@ -236,7 +236,19 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
         return function.call(this, arguments)
     }
 
-     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+        val `object` = evaluate(expr.`object`!!)
+        if (`object` is LoxInstance) {
+            return `object`.get(expr.name!!)
+        }
+
+        throw RuntimeError(
+            expr.name!!,
+            "Only instances have properties."
+        )
+    }
+
+    override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
         return evaluate(expr.expression!!)
     }
 
@@ -256,7 +268,22 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
          return evaluate(expr.right!!)
      }
 
-     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+        val `object` = evaluate(expr.`object`!!)
+
+        if (`object` !is LoxInstance) {
+            throw RuntimeError(
+                expr.name!!,
+                "Only instances have fields."
+            )
+        }
+
+        val value = evaluate(expr.value!!)
+        `object`.set(expr.name!!, value)
+        return value
+    }
+
+    override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right!!)
 
         when (expr.operator!!.type) {

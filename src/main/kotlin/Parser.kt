@@ -229,6 +229,9 @@ internal class Parser(private val tokens: MutableList<Token>) {
             if (expr is Expr.Variable) {
                 val name: Token? = expr.name
                 return Assign(name, value)
+            } else if (expr is Expr.Get) {
+                val get = expr
+                return Expr.Set(get.`object`, get.name, value);
             }
 
             error(equals, "Invalid assignment target.") // [no-throw]
@@ -325,6 +328,9 @@ internal class Parser(private val tokens: MutableList<Token>) {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr)
+            } else if (match(DOT)) {
+                val name = consume(IDENTIFIER, "Expect property name after '.'.")
+                expr = Expr.Get(expr, name)
             } else {
                 break
             }

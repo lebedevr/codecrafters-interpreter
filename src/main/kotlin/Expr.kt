@@ -4,9 +4,11 @@
         fun visitAssignExpr(expr: Assign): R?
         fun visitBinaryExpr(expr: Binary): R?
         fun visitCallExpr(expr: Call): R?
+        fun visitGetExpr(expr: Get): R?
         fun visitGroupingExpr(expr: Grouping): R?
         fun visitLiteralExpr(expr: Literal): R?
         fun visitLogicalExpr(expr: Logical): R?
+        fun visitSetExpr(expr: Set): R?
         fun visitUnaryExpr(expr: Unary): R?
         fun visitVariableExpr(expr: Variable): R?
     }
@@ -29,9 +31,15 @@
         }
     }
 
-    class Call (val callee: Expr?, val paren: Token?, val arguments: MutableList<Expr?>?) : Expr() {
+    class Call(val callee: Expr?, val paren: Token?, val arguments: MutableList<Expr?>?) : Expr() {
         override fun <R> accept(visitor: Visitor<R?>): R? {
             return visitor.visitCallExpr(this)
+        }
+    }
+
+    class Get(val `object`: Expr?, val name: Token?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitGetExpr(this)
         }
     }
 
@@ -54,6 +62,12 @@
     class Logical (val left: Expr?, val operator: Token?, val right: Expr?) : Expr() {
         override fun <R> accept(visitor: Visitor<R?>): R? {
             return visitor.visitLogicalExpr(this)
+        }
+    }
+
+    class Set(val `object`: Expr?, val name: Token?, val value: Expr?) : Expr() {
+        override fun <R> accept(visitor: Visitor<R?>): R? {
+            return visitor.visitSetExpr(this)
         }
     }
 
