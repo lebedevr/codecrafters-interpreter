@@ -24,7 +24,15 @@ class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
     }
 
     override fun visitClassStmt(stmt: Stmt.Class): String? {
-        TODO("Not yet implemented")
+        val builder = java.lang.StringBuilder()
+        builder.append("(class " + stmt.name.lexeme)
+
+        for (method in stmt.methods!!) {
+            builder.append(" " + print(method))
+        }
+
+        builder.append(")")
+        return builder.toString()
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression): String {
