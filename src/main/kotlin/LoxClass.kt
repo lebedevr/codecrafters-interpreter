@@ -4,11 +4,14 @@ class LoxClass(val name: String, private val methods: Map<String, LoxFunction>) 
     }
 
     override fun arity(): Int {
-        return 0
+        val initializer = findMethod("init") ?: return 0
+        return initializer.arity()
     }
 
     override fun call(interpreter: Interpreter, arguments: MutableList<Any?>): Any? {
         val instance = LoxInstance(this)
+        val initializer = findMethod("init")
+        initializer?.bind(instance)?.call(interpreter, arguments)
         return instance
     }
 

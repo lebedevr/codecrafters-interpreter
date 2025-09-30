@@ -11,6 +11,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
     private enum class FunctionType {
         NONE,
         FUNCTION,
+        INITIALIZER,
         METHOD
     }
 
@@ -45,7 +46,11 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
         scopes.peek().put("this", true)
 
         for (method in stmt.methods) {
-            val declaration: FunctionType = FunctionType.METHOD
+            var declaration: FunctionType = FunctionType.METHOD
+            if (method.name?.lexeme.equals("init")) {
+                declaration = FunctionType.INITIALIZER
+            }
+
             resolveFunction(method, declaration)
         }
 
@@ -87,6 +92,10 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
         }
 
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(stmt.keyword,
+                    "Can't return a value from an initializer.");
+            }
             resolve(stmt.value)
         }
 
