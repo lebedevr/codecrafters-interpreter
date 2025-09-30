@@ -20,6 +20,10 @@ class LoxClass(val name: String, val superclass: LoxClass?, private val methods:
             return methods[name]
         }
 
+        if (superclass != null) {
+            return superclass.findMethod(name)
+        }
+
         return null
     }
 }
