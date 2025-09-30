@@ -1,5 +1,4 @@
-import Expr.Assign
-import Expr.Logical
+import Expr.*
 import Stmt.Return
 import Stmt.While
 import TokenType.*
@@ -372,6 +371,16 @@ internal class Parser(private val tokens: MutableList<Token>) {
 
         if (match(NUMBER, STRING)) {
             return Expr.Literal(previous()?.literal)
+        }
+
+        if (match(SUPER)) {
+            val keyword = previous()
+            consume(DOT, "Expect '.' after 'super'.")
+            val method = consume(
+                IDENTIFIER,
+                "Expect superclass method name."
+            )
+            return Super(keyword, method)
         }
 
         if (match(THIS)) return Expr.This(previous())
