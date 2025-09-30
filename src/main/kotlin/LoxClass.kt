@@ -1,4 +1,4 @@
-class LoxClass(val name: String, private val methods: Map<String, LoxFunction>) : LoxCallable {
+class LoxClass(val name: String, val superclass: LoxClass?, private val methods: Map<String, LoxFunction>) : LoxCallable {
     override fun toString(): String {
         return name
     }
