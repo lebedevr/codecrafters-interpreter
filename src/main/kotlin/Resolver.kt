@@ -10,7 +10,8 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
 
     private enum class FunctionType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD
     }
 
     fun resolve(statements: MutableList<Stmt?>) {
@@ -29,6 +30,12 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Void?>, Stmt
     override fun visitClassStmt(stmt: Stmt.Class): Void? {
         declare(stmt.name)
         define(stmt.name)
+
+        for (method in stmt.methods) {
+            val declaration: FunctionType = FunctionType.METHOD
+            resolveFunction(method, declaration)
+        }
+
         return null
     }
 

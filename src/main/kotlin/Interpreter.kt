@@ -79,7 +79,14 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
 
     override fun visitClassStmt(stmt: Stmt.Class): Void? {
         environment.define(stmt.name.lexeme, null)
-        val klass = LoxClass(stmt.name.lexeme)
+
+        val methods: MutableMap<String, LoxFunction> = HashMap()
+        for (method in stmt.methods) {
+            val function = LoxFunction(method, environment)
+            methods.put(method.name!!.lexeme, function)
+        }
+
+        val klass = LoxClass(stmt.name.lexeme, methods)
         environment.assign(stmt.name, klass)
         return null
     }

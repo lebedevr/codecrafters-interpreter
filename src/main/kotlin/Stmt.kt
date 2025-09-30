@@ -23,7 +23,7 @@ abstract class Stmt {
 
     class Class (
         val name: Token,
-        val methods: MutableList<Function>?
+        val methods: MutableList<Function>
     ) : Stmt() {
         override fun <R> accept(visitor: Visitor<R?>): R? {
             return visitor.visitClassStmt(this)
