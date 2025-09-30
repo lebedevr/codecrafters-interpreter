@@ -5,18 +5,14 @@ import Stmt.While
 import TokenType.*
 import java.util.*
 
-internal class Parser(tokens: MutableList<Token>) {
+
+internal class Parser(private val tokens: MutableList<Token>) {
     private class ParseError : RuntimeException()
 
-    private val tokens: MutableList<Token>
     private var current = 0
 
     var allowExpression = false
     var foundExpression = false
-
-    init {
-        this.tokens = tokens
-    }
 
     fun parseRepl(): Any? {
         allowExpression = true
@@ -50,6 +46,7 @@ internal class Parser(tokens: MutableList<Token>) {
 
     private fun declaration(): Stmt? {
         try {
+            if (match(CLASS)) return classDeclaration()
             if (match(FUN)) return function("function");
             if (match(VAR)) return varDeclaration()
             return statement()
@@ -59,7 +56,21 @@ internal class Parser(tokens: MutableList<Token>) {
         }
     }
 
-    private fun function(kind: String?): Stmt.Function? {
+    private fun classDeclaration(): Stmt {
+        val name: Token = consume(IDENTIFIER, "Expect class name.")!!
+        consume(LEFT_BRACE, "Expect '{' before class body.")
+
+        val methods: MutableList<Stmt.Function> = ArrayList<Stmt.Function>()
+        while (!check(RIGHT_BRACE) && !isAtEnd) {
+            methods.add(function("method"))
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after class body.")
+
+        return Stmt.Class(name, methods)
+    }
+
+    private fun function(kind: String?): Stmt.Function {
         val name = consume(IDENTIFIER, "Expect " + kind + " name.")
         consume(LEFT_PAREN, "Expect '(' after " + kind + " name.")
         val parameters: MutableList<Token?> = ArrayList<Token?>()

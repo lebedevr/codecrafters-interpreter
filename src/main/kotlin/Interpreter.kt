@@ -77,6 +77,13 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Void?> {
         return null
     }
 
+    override fun visitClassStmt(stmt: Stmt.Class): Void? {
+        environment.define(stmt.name.lexeme, null)
+        val klass = LoxClass(stmt.name.lexeme)
+        environment.assign(stmt.name, klass)
+        return null
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression): Void? {
         evaluate(stmt.expression!!)
         return null

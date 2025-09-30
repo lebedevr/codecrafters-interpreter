@@ -2,7 +2,7 @@ import Expr.Assign
 import Expr.Logical
 import Stmt.While
 
-internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
+class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
     fun print(expr: Expr): String? {
         return expr.accept<String?>(this)
     }
@@ -21,6 +21,10 @@ internal class AstPrinter : Expr.Visitor<String?>, Stmt.Visitor<String?> {
 
         builder.append(")")
         return builder.toString()
+    }
+
+    override fun visitClassStmt(stmt: Stmt.Class): String? {
+        TODO("Not yet implemented")
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression): String {
