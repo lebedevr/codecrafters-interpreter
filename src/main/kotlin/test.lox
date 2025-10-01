@@ -1,10 +1,26 @@
-class Cake {
-  taste() {
-    var adjective = "delicious";
-    print "The " + this.flavor + " cake is " + adjective + "!";
+class A {
+  say() {
+    print "A";
   }
 }
 
-var cake = Cake();
-cake.flavor = "German chocolate";
-cake.taste();
+class B < A {
+  getClosure() {
+    fun closure() {
+      super.say();
+    }
+    return closure;
+  }
+
+  say() {
+    print "B";
+  }
+}
+
+class C < B {
+  say() {
+    print "C";
+  }
+}
+
+C().getClosure()(); // expect: A
